@@ -73,10 +73,7 @@ impl Engine {
   /// Updates the engine. Returns true if the game should stop.
   pub fn update(&mut self) -> bool {
     self.update_delta();
-    if self.nanos_cumul < self.nanos_per_frame { 
-      println!("Hey {}, {}", self.nanos_cumul, self.entity_list.len());
-      return false; 
-    }
+    if self.nanos_cumul < self.nanos_per_frame { return false; }
     self.nanos_cumul -= self.nanos_per_frame;
     self.should_render = true;
 
@@ -87,7 +84,7 @@ impl Engine {
     let mut to_remove = Vec::new();
     for e in &self.entity_list {
       let mut e_copy = e.get();
-      let (remove, mut _ents) = e_copy.update(&self.input_handler, &self.g_renderer, &*self);
+      let (remove, mut _ents) = e_copy.update(&*self);
       e.set(e_copy);
       if _ents.is_some() {
         ents.append(&mut _ents.unwrap());
@@ -96,7 +93,6 @@ impl Engine {
     }
     for e in ents {
       self.add_entity(e);
-      println!("{}", self.entity_list.len());
     }
     return false;
   }

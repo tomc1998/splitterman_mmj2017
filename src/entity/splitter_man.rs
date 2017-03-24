@@ -1,6 +1,5 @@
-use game_renderer::{RendererController, Renderer};
+use game_renderer::RendererController;
 use input;
-use input::InputHandler;
 use engine::{Vec2f32, Engine};
 use entity::{Entity, EHandle};
 
@@ -45,8 +44,7 @@ impl SplitterMan {
   /// Returns a tuple. 
   /// # 1: True if this entity should be removed after the update.
   /// # 2: A list of entities to add after the update.
-  pub fn update(&mut self, input: &InputHandler, 
-                r: &Renderer, e: &Engine) -> (bool, Option<Vec<Entity>>) {
+  pub fn update(&mut self, e: &Engine) -> (bool, Option<Vec<Entity>>) {
     if self.target.is_some() {
       let t = self.target.unwrap();
       let mut dir = t - self.pos;
@@ -60,16 +58,16 @@ impl SplitterMan {
     }
     self.pos += self.vel;
 
-    if input.selection.is_some() {
+    if e.input_handler.selection.is_some() {
       // Test for collision between input rect and splitterman rect
       let rad = self.get_size();
-      let mut sel = input.selection.unwrap();
+      let mut sel = e.input_handler.selection.unwrap();
       // Make sure sel isn't malformed (sel[0], sel[1] is the top left)
       if sel[0].0 > sel[1].0 { let tmp = sel[1].0; sel[1].0 = sel[0].0; sel[0].0 = tmp }
       if sel[0].1 > sel[1].1 { let tmp = sel[1].1; sel[1].1 = sel[0].1; sel[0].1 = tmp }
       // get selection as world coords
-      let sel_0 = r.camera.screen_to_world(sel[0].0 as i32, sel[0].1 as i32);
-      let sel_1 = r.camera.screen_to_world(sel[1].0 as i32, sel[1].1 as i32);
+      let sel_0 = e.g_renderer.camera.screen_to_world(sel[0].0 as i32, sel[0].1 as i32);
+      let sel_1 = e.g_renderer.camera.screen_to_world(sel[1].0 as i32, sel[1].1 as i32);
       if self.pos.0 - rad < sel_1.0
         && self.pos.0 + rad > sel_0.0
           && self.pos.1 - rad < sel_1.1
@@ -81,11 +79,11 @@ impl SplitterMan {
       }
     }
     if self.selected {
-      if input.inputs.get(&input::Control::Move).unwrap().down {
+      if e.input_handler.inputs.get(&input::Control::Move).unwrap().down {
         // Set target
-        self.target = Some(r.camera.screen_to_world(input.mouse_pos.0, input.mouse_pos.1));
+        self.target = Some(e.g_renderer.camera.screen_to_world(e.input_handler.mouse_pos.0, e.input_handler.mouse_pos.1));
       }
-      else if input.inputs.get(&input::Control::Split).unwrap().just_down {
+      else if e.input_handler.inputs.get(&input::Control::Split).unwrap().just_down {
         let next_size = self.size / 2;
         let rad = SplitterMan::calc_size(next_size);
         let mut child_1 = SplitterMan::new(self.pos.0 - rad, self.pos.1, next_size);

@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-use std::collections::HashMap;
 use glium::glutin::{Event, ElementState, VirtualKeyCode, MouseButton};
 use glium::backend::glutin_backend::GlutinFacade;
 use engine::Vec2f32;
@@ -40,7 +39,7 @@ pub struct InputHandler {
   /// Will be set for 1 frame after curr_box is stopped dragging.
   pub selection: Option<[Vec2f32; 2]>,
   pub mouse_pos: (i32, i32),
-  pub inputs: HashMap<Control, Input>,
+  pub inputs: BTreeMap<Control, Input>,
 }
 
 impl InputHandler {
@@ -49,7 +48,7 @@ impl InputHandler {
       curr_box: None,
       selection: None,
       mouse_pos: (0, 0),
-      inputs: HashMap::new(),
+      inputs: BTreeMap::new(),
     };
 
     i.inputs.insert(Control::Select, Input::new_mouse_input(MouseButton::Left));
