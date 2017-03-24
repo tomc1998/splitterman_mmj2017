@@ -2,23 +2,32 @@ use glium;
 use glium::backend::glutin_backend::GlutinFacade;
 
 pub const VERT_SHADER_SRC : &'static str = r#"
-    #version 100
+  #version 130
 
-    uniform mat4 proj_mat;
+  uniform mat4 proj_mat;
 
-    attribute vec2 pos;
+  in vec2 pos;
+  in vec4 col;
 
-    void main() {
-        gl_Position = proj_mat*vec4(pos, 0.0, 1.0);
-    }
+  out vec4 v_col;
+
+  void main() {
+    v_col = col;
+    gl_Position = proj_mat*vec4(pos, 0.0, 1.0);
+  }
 "#;
 
 pub const FRAG_SHADER_SRC : &'static str = r#"
-    #version 100
+  #version 130
+  precision highp float;
 
-    void main() {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    }
+  in vec4 v_col;
+
+  out vec4 color;
+
+  void main() {
+    color = v_col;
+  }
 "#;
 
 /// Just make a program with the default VERT_SHADER_SRC and FRAG_SHADER_SRC.

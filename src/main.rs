@@ -1,14 +1,13 @@
 #[macro_use]
 extern crate glium;
 
-/// Module to handle rendering entities and tiles.
 pub mod game_renderer;
 /// Handles shader programs. Not sure if I need this, just nice to keep all the
 /// hard coded shader source out the way.
 pub mod shader;
-
 pub mod entity;
 pub mod engine;
+pub mod input;
 
 use entity::Entity;
 use entity::splitter_man::SplitterMan;

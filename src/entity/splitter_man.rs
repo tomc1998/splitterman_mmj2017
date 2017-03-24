@@ -24,6 +24,6 @@ impl SplitterMan {
 
   pub fn render(&self, cont: &mut RendererController) {
     let rad = self.get_size();
-    cont.rect(self.pos[0] - rad, self.pos[1] - rad, rad*2.0, rad*2.0);
+    cont.rect(self.pos[0] - rad, self.pos[1] - rad, rad*2.0, rad*2.0, 1.0, 0.0, 0.0, 1.0);
   }
 }

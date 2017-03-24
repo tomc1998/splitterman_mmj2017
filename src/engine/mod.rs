@@ -1,7 +1,7 @@
+use input::InputHandler;
 use entity::Entity;
 use game_renderer::Renderer;
 use glium;
-use glium::glutin::Event;
 use glium::backend::glutin_backend::GlutinFacade;
 
 fn init_display() -> GlutinFacade {
@@ -14,35 +14,30 @@ fn init_display() -> GlutinFacade {
 
 pub struct Engine {
   pub entity_list: Vec<Entity>,
-  g_renderer: Renderer,
-  display: GlutinFacade,
+  pub g_renderer: Renderer,
+  pub input_handler: InputHandler,
+  pub display: GlutinFacade,
 }
 
 impl Engine {
   pub fn new() -> Engine {
+    use glium::glutin::CursorState;
     let display = init_display();
+    display.get_window().unwrap().set_cursor_state(CursorState::Grab).unwrap();
     let g_renderer = Renderer::new(&display);
     Engine { 
       g_renderer: g_renderer, 
-      entity_list: Vec::new() ,
+      entity_list: Vec::new(),
       display: display,
+      input_handler: InputHandler::new(),
     }
-  }
-
-  /// Checks input. Returns true if the game should stop.
-  fn check_input(&mut self) -> bool {
-    for e in self.display.poll_events() {
-      match e {
-        Event::Closed => return true,
-        _ => (),
-      }
-    }
-    return false;
   }
 
   /// Updates the engine. Returns true if the game should stop.
   pub fn update(&mut self) -> bool {
-    if self.check_input() { return true; }
+    if self.input_handler.check_input(&self.display) {
+      return true;
+    }
     for e in &mut self.entity_list {
       e.update();
     }
