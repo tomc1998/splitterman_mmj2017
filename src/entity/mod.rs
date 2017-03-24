@@ -2,7 +2,7 @@ pub mod splitter_man;
 
 use self::splitter_man::SplitterMan;
 use game_renderer::RendererController;
-use engine::Engine;
+use engine::{Engine, Vec2f32};
 
 #[derive(Clone, Copy, Debug)]
 pub struct EHandle(pub u32);
@@ -41,7 +41,8 @@ impl Entity {
   /// Returns a tuple. 
   /// # 1: True if this entity should be removed after the update.
   /// # 2: A list of entities to add after the update.
-  pub fn update(&mut self, engine: &Engine) -> (bool, Option<Vec<Entity>>) {
+  /// # 3: The position this entity should be moved to after the loop.
+  pub fn update(&mut self, engine: &Engine) -> (bool, Option<Vec<Entity>>, Vec2f32) {
     entity_match_and_run!(*self, update, [ref mut], engine)
   }
 
@@ -55,6 +56,15 @@ impl Entity {
 
   pub fn set_entity_handle(&mut self, h: EHandle) {
     entity_match_and_run!(*self, set_id, [ref mut], h)
+  }
+
+  /// Returns entity position (vec) and size (radius)
+  pub fn get_body(&self) -> (Vec2f32, f32) {
+    entity_match_and_run!(*self, get_body, [ref])
+  }
+
+  pub fn set_pos(&mut self, pos: Vec2f32) {
+    entity_match_and_run!(*self, set_pos, [ref mut], pos)
   }
 }
 

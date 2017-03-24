@@ -19,7 +19,7 @@ fn main() {
   let mut engine = engine::Engine::new();
 
   // Add test entity
-  engine.add_entity(Entity::SplitterMan(SplitterMan::new(100.0, 100.0, 16)));
+  engine.add_entity(Entity::SplitterMan(SplitterMan::new(100.0, 100.0, 64)));
 
   loop {
     if engine.update() { return }

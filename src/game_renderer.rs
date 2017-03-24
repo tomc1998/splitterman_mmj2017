@@ -129,8 +129,7 @@ impl Renderer {
 
     if controller.data.len() == 0 { return }
     controller.data.resize(self.vbo.len(), Vertex::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
-    self.vbo.invalidate();
-    self.vbo.slice(0..controller.data.len()).unwrap().write(&controller.data);
+    self.vbo.write(&controller.data);
 
     let uniforms = uniform! {
       proj_mat: self.proj_mat,
@@ -157,8 +156,7 @@ impl Renderer {
 
     if controller.data.len() == 0 { return }
     controller.data.resize(self.hud_vbo.len(), Vertex::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
-    self.vbo.invalidate();
-    self.hud_vbo.slice(0..controller.data.len()).unwrap().write(&controller.data);
+    self.hud_vbo.write(&controller.data);
 
 
     let uniforms = uniform! {

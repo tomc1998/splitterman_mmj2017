@@ -80,19 +80,39 @@ impl Engine {
     if self.input_handler.check_input(&self.display) {
       return true;
     }
+    let mut pos_updates = Vec::new();
     let mut ents = Vec::new(); // Entities to append to the entity list at the end of the loop
     let mut to_remove = Vec::new();
     for e in &self.entity_list {
       let mut e_copy = e.get();
-      let (remove, mut _ents) = e_copy.update(&*self);
+      let (remove, mut _ents, new_pos) = e_copy.update(&*self);
       e.set(e_copy);
       if _ents.is_some() {
         ents.append(&mut _ents.unwrap());
       }
       if remove { to_remove.push(e_copy.get_entity_handle().unwrap()); }
+      pos_updates.push((e_copy.get_entity_handle(), new_pos));
     }
-    for e in ents {
-      self.add_entity(e);
+    for e in ents { self.add_entity(e); }
+    for e_h in to_remove {
+      let mut ix = 100000000;
+      for (ii, mut e) in self.entity_list.iter_mut().enumerate() {
+        let e = e.get_mut();
+        if e_h.0 == e.get_entity_handle().unwrap().0 {
+          ix = ii;
+          break;
+        }
+      }
+      self.entity_list.remove(ix);
+    }
+    // Update positions
+    for (e_h, p) in pos_updates {
+      for e in &mut self.entity_list {
+        let e = e.get_mut();
+        if e_h.unwrap().0 == e.get_entity_handle().unwrap().0 {
+          e.set_pos(p);
+        }
+      }
     }
     return false;
   }
