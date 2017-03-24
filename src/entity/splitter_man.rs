@@ -1,45 +1,114 @@
-use game_renderer::RendererController;
+use game_renderer::{RendererController, Renderer};
+use input;
 use input::InputHandler;
+use engine::{Vec2f32, Engine};
+use entity::{Entity, EHandle};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct SplitterMan {
-  pub pos: [f32; 2],
+  pub id: Option<EHandle>, 
+
+  pub pos: Vec2f32,
+
+  pub vel: Vec2f32,
+
+  /// The splitter man's target location in world coordinates
+  pub target: Option<Vec2f32>,
 
   /// Splitter man's 'split level'. i.e. how many clones he can split into.
   /// Lowest value = 1.
   pub size: u32,
 
+  /// Splitter man's radius in world size
+  pub rad: f32,
+
   /// Has the player selected this splitter man?
   pub selected: bool,
+
+  pub speed: f32,
 }
 
 impl SplitterMan {
   pub fn new(x: f32, y: f32, size: u32) -> SplitterMan {
-    SplitterMan { pos: [x, y], size: size, selected: false, }
+    SplitterMan { 
+      pos: Vec2f32(x, y), 
+      vel: Vec2f32(0.0, 0.0), 
+      target: None, 
+      size: size, 
+      rad: SplitterMan::calc_size(size),
+      selected: false, 
+      speed: (16.0 - size as f32).sqrt() * 0.2 + 1.0 ,
+      id: None,
+    }
   }
 
-  pub fn update(&mut self, input: &InputHandler) {
+  /// Returns a tuple. 
+  /// # 1: True if this entity should be removed after the update.
+  /// # 2: A list of entities to add after the update.
+  pub fn update(&mut self, input: &InputHandler, 
+                r: &Renderer, e: &Engine) -> (bool, Option<Vec<Entity>>) {
+    if self.target.is_some() {
+      let t = self.target.unwrap();
+      let mut dir = t - self.pos;
+      if dir.len2() < self.speed*self.speed {
+        self.pos = self.target.unwrap();
+        self.vel = Vec2f32(0.0, 0.0);
+      }
+      else {
+        self.vel = *dir.nor().scale(self.speed);
+      }
+    }
+    self.pos += self.vel;
+
     if input.selection.is_some() {
-      println!("Hey");
       // Test for collision between input rect and splitterman rect
       let rad = self.get_size();
-      let sel = input.selection.unwrap();
-      if self.pos[0] - rad < sel[2] 
-        && self.pos[0] + rad > sel[0] 
-          && self.pos[1] - rad < sel[3] 
-          && self.pos[1] + rad > sel[1] {
+      let mut sel = input.selection.unwrap();
+      // Make sure sel isn't malformed (sel[0], sel[1] is the top left)
+      if sel[0].0 > sel[1].0 { let tmp = sel[1].0; sel[1].0 = sel[0].0; sel[0].0 = tmp }
+      if sel[0].1 > sel[1].1 { let tmp = sel[1].1; sel[1].1 = sel[0].1; sel[0].1 = tmp }
+      // get selection as world coords
+      let sel_0 = r.camera.screen_to_world(sel[0].0 as i32, sel[0].1 as i32);
+      let sel_1 = r.camera.screen_to_world(sel[1].0 as i32, sel[1].1 as i32);
+      if self.pos.0 - rad < sel_1.0
+        && self.pos.0 + rad > sel_0.0
+          && self.pos.1 - rad < sel_1.1
+          && self.pos.1 + rad > sel_0.1 {
             self.selected = true;
           }
       else {
         self.selected = false;
       }
     }
+    if self.selected {
+      if input.inputs.get(&input::Control::Move).unwrap().down {
+        // Set target
+        self.target = Some(r.camera.screen_to_world(input.mouse_pos.0, input.mouse_pos.1));
+      }
+      else if input.inputs.get(&input::Control::Split).unwrap().just_down {
+        let next_size = self.size / 2;
+        let rad = SplitterMan::calc_size(next_size);
+        let mut child_1 = SplitterMan::new(self.pos.0 - rad, self.pos.1, next_size);
+        let mut child_2 = SplitterMan::new(self.pos.0 + rad, self.pos.1, next_size);
+        child_1.selected = true;
+        child_2.selected = true;
+        return (true, Some(vec![
+                           Entity::SplitterMan(child_1),
+                           Entity::SplitterMan(child_2)]));
+      }
+    }
+    return (false, None);
   }
 
   /// Get entity's visual size (radius)
+  #[inline(always)]
   pub fn get_size(&self) -> f32 {
-    (self.size as f32).sqrt() * 8.0
+    self.rad
   }
+
+  /// Calculate a radius given an integer size
+  #[inline(always)]
+  pub fn calc_size(size: u32) -> f32 { (size as f32).sqrt() * 8.0 }
 
   pub fn render(&self, cont: &mut RendererController) {
     let rad = self.get_size();
@@ -50,6 +119,6 @@ impl SplitterMan {
     else {
       c = (1.0, 0.0, 0.0, 1.0);
     }
-    cont.rect(self.pos[0] - rad, self.pos[1] - rad, rad*2.0, rad*2.0, c.0, c.1, c.2, c.3);
+    cont.rect(self.pos.0 - rad, self.pos.1 - rad, rad*2.0, rad*2.0, c.0, c.1, c.2, c.3);
   }
 }

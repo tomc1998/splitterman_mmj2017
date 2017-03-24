@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate glium;
+extern crate time;
 
 pub mod game_renderer;
 /// Handles shader programs. Not sure if I need this, just nice to keep all the

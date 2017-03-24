@@ -1,13 +1,16 @@
 use std::collections::BTreeMap;
+use std::collections::HashMap;
 use glium::glutin::{Event, ElementState, VirtualKeyCode, MouseButton};
 use glium::backend::glutin_backend::GlutinFacade;
+use engine::Vec2f32;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Hash)]
 pub enum InputType {
   Key(VirtualKeyCode),
   Mouse(MouseButton),
 }
 
+#[derive(Clone, Hash)]
 pub struct Input {
   pub input: InputType,
   pub down: bool,
@@ -26,18 +29,18 @@ impl Input {
   pub fn released(&mut self) { self.down = false; self.just_down = false; }
 }
 
-#[derive(Ord, Eq, PartialOrd, PartialEq)]
+#[derive(Ord, Eq, PartialOrd, PartialEq, Hash)]
 pub enum Control {
-  Split, Select,
+  Split, Select, Move
 }
 
 pub struct InputHandler {
   /// Box currently being dragged
-  pub curr_box: Option<[f32; 4]>,
+  pub curr_box: Option<[Vec2f32; 2]>,
   /// Will be set for 1 frame after curr_box is stopped dragging.
-  pub selection: Option<[f32; 4]>,
+  pub selection: Option<[Vec2f32; 2]>,
   pub mouse_pos: (i32, i32),
-  pub inputs: BTreeMap<Control, Input>,
+  pub inputs: HashMap<Control, Input>,
 }
 
 impl InputHandler {
@@ -46,10 +49,11 @@ impl InputHandler {
       curr_box: None,
       selection: None,
       mouse_pos: (0, 0),
-      inputs: BTreeMap::new(),
+      inputs: HashMap::new(),
     };
 
     i.inputs.insert(Control::Select, Input::new_mouse_input(MouseButton::Left));
+    i.inputs.insert(Control::Move, Input::new_mouse_input(MouseButton::Right));
     i.inputs.insert(Control::Split, Input::new_key_input(VirtualKeyCode::Space));
 
     return i;
@@ -111,8 +115,8 @@ impl InputHandler {
   fn process_input(&mut self) {
     let c_select = self.inputs.get(&Control::Select).unwrap();
     if c_select.just_down {
-      self.curr_box = Some([self.mouse_pos.0 as f32, self.mouse_pos.1 as f32, 
-                           self.mouse_pos.0 as f32, self.mouse_pos.1 as f32]);
+      self.curr_box = Some([Vec2f32(self.mouse_pos.0 as f32, self.mouse_pos.1 as f32),
+                           Vec2f32(self.mouse_pos.0 as f32, self.mouse_pos.1 as f32)]);
     }
     else if self.curr_box.is_some() {
       if !c_select.down { 
@@ -121,8 +125,8 @@ impl InputHandler {
       }
       else {
         let mut b = self.curr_box.as_mut().unwrap();
-        b[2] = self.mouse_pos.0 as f32;
-        b[3] = self.mouse_pos.1 as f32;
+        b[1].0 = self.mouse_pos.0 as f32;
+        b[1].1 = self.mouse_pos.1 as f32;
       }
     }
   }
