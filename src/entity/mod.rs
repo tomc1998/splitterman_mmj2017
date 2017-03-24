@@ -2,6 +2,7 @@ pub mod splitter_man;
 
 use self::splitter_man::SplitterMan;
 use game_renderer::RendererController;
+use input::InputHandler;
 
 #[derive(Clone, Debug)]
 pub enum Entity {
@@ -9,9 +10,9 @@ pub enum Entity {
 }
 
 impl Entity {
-  pub fn update(&mut self) {
+  pub fn update(&mut self, input: &InputHandler) {
     match *self {
-      Entity::SplitterMan(ref mut e) => e.update(),
+      Entity::SplitterMan(ref mut e) => e.update(input),
     }
   }
 

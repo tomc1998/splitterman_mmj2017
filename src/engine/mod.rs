@@ -39,7 +39,7 @@ impl Engine {
       return true;
     }
     for e in &mut self.entity_list {
-      e.update();
+      e.update(&self.input_handler);
     }
     return false;
   }
