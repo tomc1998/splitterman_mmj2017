@@ -11,7 +11,7 @@ pub mod engine;
 pub mod input;
 
 use entity::Entity;
-use entity::splitter_man::SplitterMan;
+use entity::SplitterMan;
 
 
 fn main() {

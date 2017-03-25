@@ -30,7 +30,7 @@ impl Input {
 
 #[derive(Ord, Eq, PartialOrd, PartialEq, Hash)]
 pub enum Control {
-  Split, Select, Move
+  Split, Select, Move, Join
 }
 
 pub struct InputHandler {
@@ -54,6 +54,7 @@ impl InputHandler {
     i.inputs.insert(Control::Select, Input::new_mouse_input(MouseButton::Left));
     i.inputs.insert(Control::Move, Input::new_mouse_input(MouseButton::Right));
     i.inputs.insert(Control::Split, Input::new_key_input(VirtualKeyCode::Space));
+    i.inputs.insert(Control::Join, Input::new_key_input(VirtualKeyCode::R));
 
     return i;
   }
